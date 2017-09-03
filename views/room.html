@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
+		<link rel="stylesheet" href="/stylesheets/font-awesome.min.css">
+		<link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+		<link rel="stylesheet" href="/stylesheets/roomstyle.css">
+	</head>
+	<body>
+		<div class="container">
+			<div class="row top-content">
+										<div class="col-sm-8 col-sm-offset-2">
+												<h1>Welcome to <strong>FSE Chat Room</strong></h1>
+												<div class="description">
+														<p>
+															This is a responsive chat Room page made with Bootstrap.
+															<a href='/'><strong>Leave Now.</strong></a>
+														</p>		
+												</div>
+										</div>
+			</div>
+			
+			<div class="row chat-top">
+				<div class="col-sm-12">
+						<h3>FSE Chat Room</h3>
+				</div>
+			</div>
+			
+			<div class="row chat-middle">
+			</div>
+			
+			<div class="row chat-bottom">
+					<form action="" method="post" class="send-form">
+							<input type="text" name="message" class="input-message" id="input-message">
+							<button class="btn" onclick="return false" id="send-btn">Send</button>
+					</form>
+			</div>
+		</div>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/javascripts/jquery-1.11.1.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
+		
+		<script>
+			var getName = function(cookie){
+				return cookie.split("=")[1];
+			};
+			
+			var show = function(data, realUser){
+					$('.chat-middle').append($('<div class="chat-content"></div>'));
+					if(realUser == data.username)
+						$('.chat-content:last').addClass('chat-self');
+					$('.chat-content:last').append($('<div class="chat-user">' + data.username + '</div><div class="chat-time">' + data.realtime + '</div>'));
+					$('.chat-content:last').append($('<div class="chat-message">' + data.msg + '</div>'));
+					$(".chat-middle").scrollTop($(".chat-middle")[0].scrollHeight);				
+			};
+			
+			$(function(){
+				var realUser = getName(document.cookie);
+				var socket = io();
+				
+				socket.emit('query message',{});
+				
+				socket.on('load message', function(result){
+					console.log(result);
+					for(var i = 0; i < result.length; i++){
+						show(result[i], realUser);
+					}
+				});
+				
+				$('#send-btn').click(function(){
+					socket.emit('chat message', {username: realUser, msg: $('#input-message').val()});
+					$('#input-message').val('');
+					return false;
+				});
+				
+				socket.on('chat message', function(data){
+					show(data, realUser);
+				});
+			});
+		</script>
+	</body>
+</html>
